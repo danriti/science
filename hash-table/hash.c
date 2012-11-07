@@ -1,3 +1,7 @@
+/*
+ * Forked from the following gist: https://gist.github.com/1377667
+ */
+
 #define _XOPEN_SOURCE 500 /* Enable certain library functions (strdup) on linux.  See feature_test_macros(7) */
 
 #include <stdlib.h>
@@ -52,7 +56,7 @@ hashtable_t *ht_create( int size ) {
 /* Hash a string for a particular hash table. */
 int ht_hash( hashtable_t *hashtable, char *key ) {
 
-	unsigned long int hashval;
+	unsigned long int hashval = 1;
 	int i = 0;
 
 	/* Convert our string to an integer */
@@ -62,6 +66,9 @@ int ht_hash( hashtable_t *hashtable, char *key ) {
 		i++;
 	}
 
+    /* Mod by the size of the hashtable to allow the hashval to fit and have
+     * a legal index.
+     */
 	return hashval % hashtable->size;
 }
 
@@ -93,11 +100,18 @@ void ht_set( hashtable_t *hashtable, char *key, char *value ) {
 	entry_t *next = NULL;
 	entry_t *last = NULL;
 
+    /* Get the hash table bin associated with the key. */
 	bin = ht_hash( hashtable, key );
 
+    printf("%d\n", bin);
+
+    /* Get the first entry in the bin. */
 	next = hashtable->table[ bin ];
 
-	while( next != NULL && next->key != NULL && strcmp( key, next->key ) > 0 ) {
+    /* The bin will contain multiple entries if there is a hash collision. So
+     * we traverse the bin to see if the key already exists.
+     */
+	while( next != NULL && next->key != NULL && strcmp( key, next->key ) != 0 ) {
 		last = next;
 		next = next->next;
 	}
@@ -159,6 +173,10 @@ int main( int argc, char **argv ) {
 
 	ht_set( hashtable, "key1", "inky" );
 	ht_set( hashtable, "key2", "pinky" );
+
+    /*
+	ht_set( hashtable, "key1", "inky" );
+	ht_set( hashtable, "key2", "pinky" );
 	ht_set( hashtable, "key3", "blinky" );
 	ht_set( hashtable, "key4", "floyd" );
 
@@ -166,6 +184,7 @@ int main( int argc, char **argv ) {
 	printf( "%s\n", ht_get( hashtable, "key2" ) );
 	printf( "%s\n", ht_get( hashtable, "key3" ) );
 	printf( "%s\n", ht_get( hashtable, "key4" ) );
+    */
 
 	return 0;
 }
